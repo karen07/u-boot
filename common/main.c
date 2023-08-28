@@ -18,6 +18,7 @@
 #include <net.h>
 #include <version_string.h>
 #include <efi_loader.h>
+#include <lwip_u_boot_port.h>
 
 static void run_preboot_environment_command(void)
 {
@@ -66,6 +67,8 @@ void main_loop(void)
 		cli_secure_boot_cmd(s);
 
 	autoboot_command(s);
+
+	lwip_u_boot_port();
 
 	cli_loop();
 	panic("No CLI available");

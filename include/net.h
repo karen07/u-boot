@@ -321,6 +321,7 @@ struct vlan_ethernet_hdr {
 /*
  *	Internet Protocol (IP) header.
  */
+ #ifndef __LWIPOPTS_H__
 struct ip_hdr {
 	u8		ip_hl_v;	/* header length and version	*/
 	u8		ip_tos;		/* type of service		*/
@@ -333,6 +334,7 @@ struct ip_hdr {
 	struct in_addr	ip_src;		/* Source IP address		*/
 	struct in_addr	ip_dst;		/* Destination IP address	*/
 } __attribute__((packed));
+#endif
 
 #define IP_OFFS		0x1fff /* ip offset *= 8 */
 #define IP_FLAGS	0xe000 /* first 3 bits */
@@ -419,6 +421,7 @@ struct arp_hdr {
 /* Codes for NOT_REACH */
 #define ICMP_NOT_REACH_PORT	3	/* Port unreachable		*/
 
+#ifndef __LWIPOPTS_H__
 struct icmp_hdr {
 	u8		type;
 	u8		code;
@@ -436,6 +439,7 @@ struct icmp_hdr {
 		u8 data[0];
 	} un;
 } __attribute__((packed));
+#endif
 
 #define ICMP_HDR_SIZE		(sizeof(struct icmp_hdr))
 #define IP_ICMP_HDR_SIZE	(IP_HDR_SIZE + ICMP_HDR_SIZE)

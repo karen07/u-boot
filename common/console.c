@@ -23,6 +23,12 @@
 #include <asm/global_data.h>
 #include <linux/delay.h>
 
+#ifndef CONFIG_SPL_BUILD
+extern void (*push_packet)(void *packet, int length);
+extern struct tcp_pcb* globa_tcp;
+extern char tcp_get;
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static int on_console(const char *name, const char *value, enum env_op op,
@@ -503,6 +509,15 @@ int fgetc(int file)
 		 */
 		for (;;) {
 			schedule();
+#ifndef CONFIG_SPL_BUILD
+			if(push_packet) {
+				eth_rx();
+				char tmp = tcp_get;
+				tcp_get = 0;
+				if(tmp)
+					return tmp;
+			}
+#endif
 			if (CONFIG_IS_ENABLED(CONSOLE_MUX)) {
 				/*
 				 * Upper layer may have already called tstc() so
@@ -538,14 +553,46 @@ int ftstc(int file)
 
 void fputc(int file, const char c)
 {
+#ifndef CONFIG_SPL_BUILD
+	if(globa_tcp) {
+		unsigned char buf[3];
+		buf[0] = 0x80 | 0x01;
+		buf[1] = 1;
+		buf[2] = c;
+		tcp_write(globa_tcp, buf, 3, 1);
+		tcp_output(globa_tcp);
+	} else {
+#endif
 	if ((unsigned int)file < MAX_FILES)
 		console_putc(file, c);
+#ifndef CONFIG_SPL_BUILD
+	}
+#endif
 }
 
 void fputs(int file, const char *s)
 {
+#ifndef CONFIG_SPL_BUILD
+	if(globa_tcp) {
+		int len = strlen(s);
+		unsigned char buf[150];
+		while (len) {
+			int send_len = min(len, 125);
+			buf[0] = 0x80 | 0x01;
+			buf[1] = send_len;
+			memcpy(&buf[2], s, send_len);
+			tcp_write(globa_tcp, buf, send_len + 2, 1);
+			len -= send_len;
+			s += send_len;
+		}
+		tcp_output(globa_tcp);
+	} else {
+#endif
 	if ((unsigned int)file < MAX_FILES)
 		console_puts(file, s);
+#ifndef CONFIG_SPL_BUILD
+	}
+#endif
 }
 
 #ifdef CONFIG_CONSOLE_FLUSH_SUPPORT
