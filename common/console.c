@@ -24,6 +24,7 @@
 #include <watchdog.h>
 #include <asm/global_data.h>
 #include <linux/delay.h>
+#include <web_console.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -526,6 +527,16 @@ int fgetc(int file)
 		 */
 		for (;;) {
 			schedule();
+#ifdef CONFIG_WEB_CONSOLE
+#ifndef CONFIG_SPL_BUILD
+			if(web_console_inited()) {
+				char symbol = web_console_getc();
+				if(symbol) {
+					return symbol;
+				}
+			}
+#endif
+#endif
 			if (CONFIG_IS_ENABLED(CONSOLE_MUX)) {
 				/*
 				 * Upper layer may have already called tstc() so
@@ -561,14 +572,38 @@ int ftstc(int file)
 
 void fputc(int file, const char c)
 {
+#ifdef CONFIG_WEB_CONSOLE
+#ifndef CONFIG_SPL_BUILD
+	if(web_console_started()) {
+		web_console_putc(c);
+	} else {
+#endif
+#endif
 	if ((unsigned int)file < MAX_FILES)
 		console_putc(file, c);
+#ifdef CONFIG_WEB_CONSOLE
+#ifndef CONFIG_SPL_BUILD
+	}
+#endif
+#endif
 }
 
 void fputs(int file, const char *s)
 {
+#ifdef CONFIG_WEB_CONSOLE
+#ifndef CONFIG_SPL_BUILD
+	if(web_console_started()) {
+		web_console_puts(s);
+	} else {
+#endif
+#endif
 	if ((unsigned int)file < MAX_FILES)
 		console_puts(file, s);
+#ifdef CONFIG_WEB_CONSOLE
+#ifndef CONFIG_SPL_BUILD
+	}
+#endif
+#endif
 }
 
 #ifdef CONFIG_CONSOLE_FLUSH_SUPPORT

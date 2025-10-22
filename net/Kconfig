@@ -226,6 +226,14 @@ config DNS
 	  Selecting this will allow the network stack to use server names
 	  in addition to IP addresses.
 
+config WEB_CONSOLE
+	bool "Enable web console"
+	depends on NET_LWIP
+	select PROT_TCP_LWIP
+	select PROT_UDP_LWIP
+	help
+	  Selecting this will enable web console.
+
 config WGET
 	bool "Enable wget"
 	select PROT_TCP if NET
