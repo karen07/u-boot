@@ -19,6 +19,7 @@
 #include <net.h>
 #include <version_string.h>
 #include <efi_loader.h>
+#include <web_console.h>
 
 static void run_preboot_environment_command(void)
 {
@@ -69,6 +70,12 @@ void main_loop(void)
 		cli_secure_boot_cmd(s);
 
 	autoboot_command(s);
+
+#ifdef CONFIG_WEB_CONSOLE
+#ifndef CONFIG_SPL_BUILD
+	web_console_init();
+#endif
+#endif
 
 	/* if standard boot if enabled, assume that it will be able to boot */
 	if (IS_ENABLED(CONFIG_BOOTSTD_PROG)) {
